@@ -1,0 +1,4 @@
+train: D:/pyprojs/Anime-seg-yolov8/datasets/train_small
+val: D:/pyprojs/Anime-seg-yolov8/datasets/val
+nc: 1
+names: ['person']

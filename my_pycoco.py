@@ -24,15 +24,14 @@ def mask2yolo(mask_img, show=False):
     poligon = poligons[max_index]
     # 画出轮廓
     zeros = np.zeros(img.shape, np.uint8)
-    print(np.array(poligon).shape)
+    #print(np.array(poligon).shape)
     if show:
         cv2.fillPoly(zeros, [np.array(poligon).reshape(-1, 2)], (255, 255, 255))
-        cv2.imshow("mask",zeros)
     #保存为yolo的str
     yolo_str = "0 "
     for j in range(0,len(poligon),2):
         yolo_str += str(poligon[j]/img.shape[1])+" "+str(poligon[j+1]/img.shape[0])+" "
-    return yolo_str
+    return yolo_str, zeros
 
 # 读取fg bg mask 返回叠加后的fg bg 和相应变换后的mask 
 def make_pic(fg,bg,mask):
@@ -50,16 +49,25 @@ def make_pic(fg,bg,mask):
     # 1. resize fg
     # 计算比例 使fg的长宽都小于bg
     # 如果本来就小于bg就不用resize了
-    if fg.size[0] > bg.size[0] or fg.size[1] > bg.size[1]:
-        scale = min(bg.size[0]/fg.size[0],bg.size[1]/fg.size[1])
+    if fg.size[0] >= bg.size[0] or fg.size[1] >= bg.size[1]:
+        scale = min(bg.size[0]/fg.size[0],bg.size[1]/fg.size[1])/1.2
         # resize
         fg = fg.resize((int(fg.size[0]*scale),int(fg.size[1]*scale)))
-
+        # mask也resize
+        mask = mask.resize((int(mask.size[0]*scale),int(mask.size[1]*scale)))
+    # 防止fg太小 至少得是bg的一半大小
+    if fg.size[0] < bg.size[0]/2 and fg.size[1] < bg.size[1]/2:
+        scale = min(bg.size[0]/fg.size[0],bg.size[1]/fg.size[1])/1.5
+        # resize
+        fg = fg.resize((int(fg.size[0]*scale),int(fg.size[1]*scale)))
+        # mask也resize
+        mask = mask.resize((int(mask.size[0]*scale),int(mask.size[1]*scale)))
     # 2. 将fg叠加到bg上
     # 随机生成一个位置
     # 生成的位置是fg的左上角的位置 需要保证右下角的位置在bg内
     max_x = bg.size[0] - fg.size[0]
     max_y = bg.size[1] - fg.size[1]
+    #print(max_x,max_y)
     # 生成随机位置
     new_x = np.random.randint(0,max_x)
     new_y = np.random.randint(0,max_y)
@@ -67,7 +75,7 @@ def make_pic(fg,bg,mask):
     bg.paste(fg, (new_x, new_y), fg)
 
     # 3. 将mask也变换到与bg一样的全0图片上（无透明图层），然后将mask直接叠加上去
-    print(mask)
+    #print(mask)
     mask = mask.convert("L")
     blank_mask = Image.new("L",bg.size,0)
     blank_mask.paste(mask, (new_x, new_y), mask)
