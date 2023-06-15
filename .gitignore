@@ -3,3 +3,11 @@
 /yolov8n.pt
 /yolov8n-seg.pt
 /train0
+/segany/sam_vit_h_4b8939.pth
+/detect/*
+/segany
+/yolo/last.pt
+/yolov8m.pt
+/yolov8m-seg.pt
+person_yolov8n-seg.pt
+/samples
