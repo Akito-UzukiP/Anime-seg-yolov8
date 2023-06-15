@@ -21,7 +21,12 @@ for i in os.listdir(mask_path):
     # 画出轮廓
     zeros = np.zeros(img.shape, np.uint8)
     print(np.array(poligon).shape)
-    cv2.fillConvexPoly(zeros, np.array(poligon).reshape(-1, 2), 255)
+    #保存为yolo格式
+    with open("./data/mask_test/train_mask/"+i[:-4]+".txt","w") as f:
+        for j in range(0,len(poligon),2):
+            f.write("0 ")
+            f.write(str(poligon[j]/img.shape[1])+" "+str(poligon[j+1]/img.shape[0]))
+    #cv2.fillConvexPoly(zeros, np.array(poligon).reshape(-1, 2), 255)
 
-    cv2.imshow("a", img)
-    cv2.waitKey(0)
+    #cv2.imshow("a", img)
+    #cv2.waitKey(1000)
