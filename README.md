@@ -1,7 +1,5 @@
 # Anime-seg-yolov8
 A segmentation project based on aniseg, trained on yolov8-seg
-使用Ani-Seg的训练集，通过组合前景、背景以产生训练集。使用ultralytics的yolov8-seg进行训练
+使用Ani-Seg的训练集，通过组合前景、背景以产生训练集。使用ultralytics的yolov8-seg进行训练，通过结合yolov8-seg和SAM实现更加精准的表现
 ## TODO:
-1. 完成Aniseg数据集处理(将fg随机旋转扔到bg上面，用相同的处理生成mask)
-2. 对数据集和mask进行处理，生成yolo格式的annotation
-3. 用yolov8-seg进行训练
+1.SAM不会对所有东西全部分割，这导致似乎会遇到糟糕的内部透明情况 想办法解决他
