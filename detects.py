@@ -8,8 +8,14 @@ import matplotlib.pyplot as plt
 import os
 from ultralytics import YOLO
 from tqdm import tqdm
+import parser
 
-#TODO: 1. SAM的mask生成器 2. yolov8的seg标注 3.投票机制
+#
+#函数列表：
+# seg_any_mask_generate: 生成sam的mask
+# yolo_mask_generate: 生成yolo的mask，同时返回bboxes，用于裁剪
+# vote_mask_generate: 把所有跟YOLO_mask重合率大于threshold的SAM_mask进行或运算，最后返回
+# seg_single: 用于单张图片的处理，返回最终的mask和裁剪后的图片
 # 1. SAM的mask生成器
 def segany_mask_generate(seg_model, image):
     if isinstance(image, str):
