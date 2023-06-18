@@ -2,7 +2,7 @@
 A segmentation project based on aniseg, trained on yolov8-seg
 使用Ani-Seg的训练集，通过组合前景、背景以产生训练集。使用ultralytics的yolov8-seg进行训练，通过结合yolov8-seg和SAM实现更加精准的表现
 ## Project works
-1.读取https://github.com/SkyTNT/anime-segmentation提供的训练集，并模仿、制造YOLOv8-seg的训练集
+1.读取https://github.com/SkyTNT/anime-segmentation 提供的训练集，并模仿、制造YOLOv8-seg的训练集
 
 2.训练模型
 
