@@ -14,7 +14,7 @@ A segmentation project based on aniseg, trained on yolov8-seg
 
 2.训练不同大小的模型（n、s、m大小的）
 
-4.优化SAM的超参数
+3.优化SAM的超参数
 
 ## model
 
