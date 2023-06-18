@@ -23,7 +23,7 @@ def mask2yolo(mask_img, item_nums,show = False):
     #print(np.argsort(size)[-item_nums:])
     print(np.argsort(size)[-item_nums:])
     temp = []
-    for i in np.argsort(size)[-item_nums+1:]:
+    for i in np.argsort(size)[-item_nums:]:
         temp.append(poligons[i])
     poligons = temp
     # 画出轮廓
@@ -44,7 +44,7 @@ def mask2yolo(mask_img, item_nums,show = False):
 
 # 读取fg bg mask 返回叠加后的fg bg 和相应变换后的mask 
 # 修改成多张fg mask
-def make_pic(fgs_,bg,masks_):
+def make_pic(fgs_,bg,masks_,do_rotation=True,do_scale=True,do_flip=True,do_color_transformation=True,do_noise_injection=True):
     # 读入的是路径，
     assert len(fgs_) == len(masks_), "前景图像与掩膜数量必须相等"
     fgs = []
@@ -56,9 +56,6 @@ def make_pic(fgs_,bg,masks_):
         fgs.append(fg)
         masks.append(mask)
     # 先不考虑旋转了，只考虑平移
-    do_rotation = True
-    do_translation = True
-    do_scale = True
     blank_mask = Image.new("L",bg.size,0)
     target_cnt = 0
     for fg, mask in zip(fgs, masks):
@@ -76,6 +73,15 @@ def make_pic(fgs_,bg,masks_):
             fg = fg.resize((int(fg.size[0]*scale),int(fg.size[1]*scale)))
             # mask也resize
             mask = mask.resize((int(mask.size[0]*scale),int(mask.size[1]*scale)))
+        if do_flip:
+            if np.random.randint(0,2):
+                fg = fg.transpose(Image.FLIP_LEFT_RIGHT)
+                mask = mask.transpose(Image.FLIP_LEFT_RIGHT)
+        if do_color_transformation:
+            enhancer = ImageEnhance.Color(fg)
+            fg = enhancer.enhance(np.random.uniform(0.5, 1.5))  # 对颜色进行增强，值大于1表示增强，小于1表示减弱
+
+
 
         if fg.size[0] >= bg.size[0] or fg.size[1] >= bg.size[1]:
             scale = min(bg.size[0]/fg.size[0],bg.size[1]/fg.size[1])/1.2
@@ -114,19 +120,10 @@ def make_pic(fgs_,bg,masks_):
 
         blank_mask.paste(mask, (new_x, new_y), mask)
         
-
+        # 噪声注入
+        if do_noise_injection:
+            noise = np.random.normal(0, np.random.randint(0,32), (bg.size[1], bg.size[0], 3))
+            bg = Image.fromarray((np.array(bg) + noise).clip(0,255).astype(np.uint8))
     return bg, blank_mask, target_cnt
 
 
-#产生随机噪声
-def make_noise(img, show=False):
-    # 保证img是PIL的Image格式
-    assert isinstance(img, Image.Image)
-    # 生成随机噪声
-    noise = np.random.randint(0,255,(img.size[1],img.size[0],3),dtype=np.uint8)
-    noise = Image.fromarray(noise)
-    # 将噪声叠加到img上
-    img.paste(noise,(0,0),noise)
-    if show:
-        img.show()
-    return img
