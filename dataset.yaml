@@ -1,4 +1,4 @@
-train: D:/pyprojs/Anime-seg-yolov8/datasets/train
-val: D:/pyprojs/Anime-seg-yolov8/datasets/val
+train: D:/pyprojs/Anime-seg-yolov8/datasets/mixed_pic
+val: D:/pyprojs/Anime-seg-yolov8/datasets/val2
 nc: 1
 names: ['person']

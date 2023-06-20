@@ -1,7 +1,8 @@
 import os
 import cv2
-path = "./data/fg/"
-mask_path = "./data/masks_2/"
+path = "./datasets/new/"
+mask_path = "./datasets/new_masks/"
+
 if not os.path.exists(mask_path):
     os.mkdir(mask_path)
 cnt = 0
@@ -12,7 +13,6 @@ for i in os.listdir(path):
     # 将图片转化为纯黑白的，非0即255
     #print(img[:,:,3])
     ret, thresh = cv2.threshold(img[:,:,3], 0, 255, cv2.THRESH_BINARY)
-    print(thresh.shape)
+    #print(thresh.shape)
     cv2.imwrite(mask_path+i, thresh)
     cnt += 1
-    break
