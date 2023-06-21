@@ -17,3 +17,5 @@ person_yolov8n-seg.pt
 /test
 /yolo
 /outcome_data
+yolov8n-seg.pt
+wildcards.txt

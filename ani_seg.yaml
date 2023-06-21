@@ -1,4 +1,4 @@
 train: D:/pyprojs/Anime-seg-yolov8/datasets/test2
-val: D:/pyprojs/Anime-seg-yolov8/datasets/test2_val
+val: D:/pyprojs/Anime-seg-yolov8/datasets/Ani-seg_val
 nc: 1
 names: ['person']
