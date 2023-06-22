@@ -1,7 +1,7 @@
 # YOUR TITLE HERE
 
-**Student Name:** 刘宗尧, 罗世杰, 郗志豪
-**Student ID:** 12011903, 12010724, 12110607
+**Student Name:** 
+**Student ID:** 
 
 ## 1. Introduction
 
