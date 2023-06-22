@@ -35,10 +35,11 @@ python detect.py --source [图片路径] --threshold [分割阈值] --save_path 
 - save_path：保存结果的路径，默认为'./seg_output'
 - sam_model：SAM模型，有 'vit_l', 'vit_h' 和 'vit_b' 三种可选，默认为 'vit_l'
 - yolo_model：YOLO模型路径，默认为'./yolo/ver3.pt'
-- cuda：如果需要使用cuda加速，加上此选项
+- cuda：如果需要使用cuda加速，加上此选项(显存占用非常高，请注意)
 
 ## TODO:
-
+1.修复批量处理内存溢出问题
+2.添加各mask导出
 ## 模型下载
 
 YOLOv8-seg:https://huggingface.co/AkitoP/Anime-yolov8-seg
