@@ -13,12 +13,12 @@ A segmentation project based on aniseg, trained on yolov8-seg
 - Use pretrained model to detect and segment anime character
 
 ## Requirements
-- Python 3.8 or later with all [requirements.txt]
-- Put the Segment Anything Model into ./segany folder
-- Put the YOLO model into ./yolo folder
+- 安装python>=3.8以及requirements.txt中的依赖
+- 将Segment Anything模型放入./segany 文件夹中
+- 将YOLOv8-seg模型放入 ./yolo 文件夹中
 
 ## How to generate dataset
-
+TODO
 
 ## 如何检测并分割动漫角色
 

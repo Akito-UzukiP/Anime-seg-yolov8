@@ -23,22 +23,24 @@ def segany_mask_generate(seg_model, image):
     if isinstance(image, Image.Image):
         image = np.array(image)
     # 生成mask
+    original_image_size = image.shape[:2]
+    # 如果图片太大，就resize到1920以下，最长边为1920
+    if max(original_image_size) > 1920:
+        scale = 1920 / max(original_image_size)
+        image = cv2.resize(image, (int(image.shape[1] * scale), int(image.shape[0] * scale)))
     masks = seg_model.generate(image)
     return_masks = []
     for i, mask in enumerate(masks):
+        #把masks给resize到原图大小
         return_masks.append(mask['segmentation'].astype(np.uint8))
     return np.array(return_masks)
 # 2. yolov8的seg标注
 def yolo_mask_generate(yolo_model, image):
     # 生成mask
     masks = yolo_model(image)
-    bboxes = masks[0].boxes.xyxyn.detach().cpu().numpy()
-    num = len(masks)
     masks = masks[0].masks.data.data.cpu().numpy().sum(axis=0)
-    # 按照bboxes的大小，对mask进行裁剪
-    bboxes = np.concatenate((bboxes.min(axis=0)[:2],bboxes.max(axis=0)[2:]))
     #获取数量
-    return masks,bboxes
+    return masks
 
 # 3. 投票机制，这里由于只有一类，所以直接融合所有YOLO_masks，然后和SAM_masks做投票，如果SAM_masks的重合率大于threshold就保留SAM_masks，否则扔掉，最后融合保留的SAM_masks并返回
 def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8,num = 1,erode_iter=1,erode_kernel_size=2):
@@ -82,16 +84,17 @@ def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
     images = []
     output_images = []
     if os.path.isdir(image_path):
-        for image_path in os.listdir(image_path):
-            image = Image.open(image_path).convert("RGB")
-            yolo_masks, _= yolo_mask_generate(yolo_model,image)
+        for image_ in os.listdir(image_path):
+            image = Image.open(os.path.join(image_path,image_)).convert("RGB")
+            yolo_masks= yolo_mask_generate(yolo_model,image)
             sam_masks = segany_mask_generate(seg_model,image)
             voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
             output_masks.append(voted_mask)
             images.append(image)
+            
     else:
         image = Image.open(image_path).convert("RGB")
-        yolo_masks, _= yolo_mask_generate(yolo_model,image)
+        yolo_masks= yolo_mask_generate(yolo_model,image)
         sam_masks = segany_mask_generate(seg_model,image)
         voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
         output_masks.append(voted_mask)
@@ -100,22 +103,30 @@ def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
         image = images[i]
         image = np.array(image.convert("RGBA"))
         mask = np.array(mask)
+        #把mask给resize到和image一样的大小
+        mask = cv2.resize(mask, (image.shape[1], image.shape[0])).astype(np.uint8)
         #mask大于0的地方，image的alpha通道为255，否则为0
         image[:,:,3] = mask*255
         image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA)
         output_images.append(image)
+
     
 
     return output_masks, output_images
 
 #主函数
 def main_func(parse):
+    save_path = parse.save_path
+
     if parse.sam_model == "vit_l":
         sam = sam_model_registry["vit_l"](checkpoint="./segany/sam_vit_l_0b3195.pth")
+        print("Use vit_l")
     elif parse.sam_model == "vit_h":
         sam = sam_model_registry["vit_h"](checkpoint="./segany/sam_vit_h_4b8939.pth")
+        print("Use vit_h")
     else:
         sam = sam_model_registry["vit_b"](checkpoint="./segany/sam_vit_b_01ec64.pth")
+        print("Use vit_b")
     if parse.cuda:
         sam = sam.cuda()
 
@@ -125,20 +136,30 @@ def main_func(parse):
                                                 crop_n_points_downscale_factor=1,
                                                 crop_n_layers=1)
     yolo_model = YOLO(parse.yolo_model)
-    #如果source是文件夹
 
     output_masks, output_images = pipeline( sam_model_generator, yolo_model, parse.source, parse.threshold)
     #保存图片
-    if not os.path.exists(parse.save_path):
-        os.makedirs(parse.save_path)
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    image_names = []
+    # 如果source 是文件夹:
+    if os.path.isdir(parse.source):
+        for image_ in os.listdir(parse.source):
+            image_names.append(image_)
+    else:
+        image_names.append(parse.source)
     for i, image in enumerate(output_images):
-        cv2.imwrite(os.path.join(parse.save_path, str(i)+'.png'), image)
+        print("Save {}".format(os.path.join(save_path, image_names[i].split("\\")[-1].split(".")[0]+'.png')))
+        cv2.imwrite(os.path.join(save_path, image_names[i].split("\\")[-1].split(".")[0]+'.png'), image)
+
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default='sample.jpg', help='path to the image')
     parser.add_argument('--threshold', type=float, default=0.3, help='threshold for mask')
     parser.add_argument('--save_path', type=str, default='./seg_output', help='path to save the mask')
-    parser.add_argument('--sam_model', type=str, default='vit_l', help='sam model')
+    parser.add_argument('--sam_model', type=str, default='vit_b', help='sam model')
     parser.add_argument('--yolo_model', type=str, default='./yolo/ver3.pt', help='yolo model')
     parser.add_argument('--cuda', action='store_true', help='use cuda')
     main_func(parser.parse_args())
