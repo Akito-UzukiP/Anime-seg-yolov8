@@ -70,6 +70,8 @@ def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8,num = 1,erode_iter=3,e
         #print(score)
     not_labeled_yolo = cv2.bitwise_and(not_labeled, YOLO_masks)
     final_mask = cv2.bitwise_or(final_mask,not_labeled_yolo)
+    final_mask = cv2.erode(final_mask,kernel,iterations = erode_iter)
+    final_mask = cv2.dilate(final_mask,kernel,iterations = erode_iter)
     return final_mask.astype(np.uint8)
     
 def plot_sam_mask(masks):
@@ -83,7 +85,7 @@ def plot_sam_mask(masks):
     return background
 
 
-def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
+def pipeline(seg_model, yolo_model, image_path, threshold=0.6):
     image = Image.open(image_path).convert("RGB")
     yolo_masks= yolo_mask_generate(yolo_model,image)
     if yolo_masks is None:
@@ -118,10 +120,10 @@ def main_func(parse):
         sam = sam.cuda()
 
     sam_model_generator = SamAutomaticMaskGenerator(sam,
-                                                pred_iou_thresh=0.5,
+                                                pred_iou_thresh=0.7,
                                                 stability_score_thresh=0.8,
                                                 crop_n_points_downscale_factor=3,
-                                                crop_n_layers=1)
+                                                crop_n_layers=2)
     yolo_model = YOLO(parse.yolo_model)
     source = parse.source
     show_mask = parse.mask
@@ -166,7 +168,7 @@ def main_func(parse):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default='sample.jpg', help='path to the image')
-    parser.add_argument('--threshold', type=float, default=0.3, help='threshold for mask')
+    parser.add_argument('--threshold', type=float, default=0.5, help='threshold for mask')
     parser.add_argument('--save_path', type=str, default='./seg_output', help='path to save the mask')
     parser.add_argument('--sam_model', type=str, default='vit_b', help='sam model')
     parser.add_argument('--yolo_model', type=str, default='./yolo/ver3.pt', help='yolo model')
