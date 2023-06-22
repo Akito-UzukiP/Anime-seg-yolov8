@@ -68,7 +68,14 @@ The quality of the output was further evaluated by humans. This was done by usin
 | YOLOv8n-seg@100epochs with Ani-seg Enhanced Dataset | 0.902 | 0.901 | 0.951 | 0.798 | 0.909 | 0.891 | 0.944 | 0.718 |
 | YOLOv8m-seg@60epochs with Ani-seg Simple + Enhanced Dataset + COCO2017 Person Class | 0.961 | 0.956 | 0.983 | 0.899 | 0.963 | 0.958 | 0.984 | 0.825 |
 
+The above table shows the results of the evaluation of the YOLO model.
+
 As can be seen, data augmentation provides a measurable improvement to the model's segmentation capabilities. Additionally, the incorporation of the concept of a "human" from the COCO2017 dataset also enhances the model's ability to segment, even if the subjects are not anime characters.
+
+![val_results](val_batch1_pred.jpg)
+The above picture shows the results of the prediction of the YOLOv8m-seg@60epochs with Ani-seg Simple + Enhanced Dataset + COCO2017 Person Class model on the test dataset.
+
+
 
 #### 2.We used the Segment Anything model with VIT_L for the entire pipeline, resulting in the following outputs:
 ![Sample](output.png)
