@@ -25,7 +25,7 @@ A segmentation project based on aniseg, trained on yolov8-seg
 使用命令行检测和分割动漫角色，如下：
 
 ```bash
-python main.py --source [图片路径] --threshold [分割阈值] --save_path [保存路径] --sam_model [SAM模型] --yolo_model [YOLO模型路径] [--cuda]
+python detect.py --source [图片路径] --threshold [分割阈值] --save_path [保存路径] --sam_model [SAM模型] --yolo_model [YOLO模型路径] [--cuda]
 ```
 各参数具体含义如下：
 
