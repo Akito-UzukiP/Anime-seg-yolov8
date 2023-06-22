@@ -77,49 +77,25 @@ def plot_sam_mask(masks):
         # 产生一个三通道的随机颜色 
         temp = np.concatenate((mask[:,:,np.newaxis],mask[:,:,np.newaxis],mask[:,:,np.newaxis]),axis=2)
         temp = temp*color[i]
-        background = background + temp
+        background = cv2.bitwise_or(background,temp)
     return background
 
 
 def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
-    output_masks = []
-    images = []
-    output_images = []
-    if os.path.isdir(image_path):
-        for image_ in os.listdir(image_path):
-            image = Image.open(os.path.join(image_path,image_)).convert("RGB")
-            yolo_masks= yolo_mask_generate(yolo_model,image)
-            if yolo_masks is None:
-                continue
-            sam_masks = segany_mask_generate(seg_model,image)
-            voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
-            output_masks.append(voted_mask)
-            images.append(image)
-        if len(output_masks) == 0:
-            return None
-    else:
-        image = Image.open(image_path).convert("RGB")
-        yolo_masks= yolo_mask_generate(yolo_model,image)
-        if yolo_masks is None:
-            return None
-        sam_masks = segany_mask_generate(seg_model,image)
-        voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
-        output_masks.append(voted_mask)
-        images.append(image)
-    for i, mask in enumerate(output_masks):
-        image = images[i]
-        image = np.array(image.convert("RGBA"))
-        mask = np.array(mask)
-        #把mask给resize到和image一样的大小
-        mask = cv2.resize(mask, (image.shape[1], image.shape[0])).astype(np.uint8)
-        #mask大于0的地方，image的alpha通道为255，否则为0
-        image[:,:,3] = mask*255
-        image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA)
-        output_images.append(image)
-
-    
-
-    return output_masks, output_images
+    image = Image.open(image_path).convert("RGB")
+    yolo_masks= yolo_mask_generate(yolo_model,image)
+    if yolo_masks is None:
+        return None, None, None
+    sam_masks = segany_mask_generate(seg_model,image)
+    voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
+    image = np.array(image.convert("RGBA"))
+    voted_mask = np.array(voted_mask)
+    #把mask给resize到和image一样的大小
+    voted_mask = cv2.resize(voted_mask, (image.shape[1], image.shape[0])).astype(np.uint8)
+    #mask大于0的地方，image的alpha通道为255，否则为0
+    image[:,:,3] = voted_mask*255
+    image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA)
+    return voted_mask, image, sam_masks
 
 #主函数
 def main_func(parse):
@@ -143,24 +119,37 @@ def main_func(parse):
                                                 crop_n_points_downscale_factor=1,
                                                 crop_n_layers=1)
     yolo_model = YOLO(parse.yolo_model)
-
-    output_masks, output_images = pipeline( sam_model_generator, yolo_model, parse.source, parse.threshold)
-    if output_masks is None:
-        print("No object detected!")
-        return
+    source = parse.source
+    show_mask = parse.mask
+    show_sam = parse.sam
     #保存图片
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    image_names = []
     # 如果source 是文件夹:
     if os.path.isdir(parse.source):
         for image_ in os.listdir(parse.source):
-            image_names.append(image_)
+            output_masks, output_images, sam_masks= pipeline( sam_model_generator, yolo_model, os.path.join(source,image_), parse.threshold)
+            if output_images is None or output_masks is None or sam_masks is None:
+                print("No object detected!")
+                continue
+            print("Save {}".format(os.path.join(save_path, image_.split("\\")[-1].split(".")[0]+'.png')))
+            cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'.png'), output_images)
+            if show_mask:
+                cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_mask.png'), output_masks)
+            if show_sam:
+                cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_sam.png'), plot_sam_mask(sam_masks))
+    
     else:
-        image_names.append(parse.source)
-    for i, image in enumerate(output_images):
-        print("Save {}".format(os.path.join(save_path, image_names[i].split("\\")[-1].split(".")[0]+'.png')))
-        cv2.imwrite(os.path.join(save_path, image_names[i].split("\\")[-1].split(".")[0]+'.png'), image)
+        output_masks, output_images, sam_masks = pipeline( sam_model_generator, yolo_model, source, parse.threshold)
+        if output_images is None or output_masks is None or sam_masks is None:
+            print("No object detected!")
+            return
+        print("Save {}".format(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'.png')))
+        cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'.png'), output_images)
+        if show_mask:
+            cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'_mask.png'), output_masks*255)
+        if  show_sam:
+            cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'_sam.png'), plot_sam_mask(sam_masks))
 
 
 
@@ -172,6 +161,8 @@ if __name__ == '__main__':
     parser.add_argument('--sam_model', type=str, default='vit_b', help='sam model')
     parser.add_argument('--yolo_model', type=str, default='./yolo/ver3.pt', help='yolo model')
     parser.add_argument('--cuda', action='store_true', help='use cuda')
+    parser.add_argument('--mask', action='store_true', help='show mask')
+    parser.add_argument('--sam', action='store_true', help='show sam masks')
     main_func(parser.parse_args())
 
 

@@ -1,4 +1,4 @@
-/datasets
+/datasets/*
 /yolo_train
 /yolov8n.pt
 /yolov8n-seg.pt
