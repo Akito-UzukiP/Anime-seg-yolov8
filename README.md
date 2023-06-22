@@ -2,6 +2,7 @@
 A segmentation project based on aniseg, trained on yolov8-seg
 
 使用Ani-Seg的训练集，通过组合前景、背景以产生训练集。使用ultralytics的yolov8-seg进行训练，通过结合yolov8-seg和SAM实现更加精准的表现
+![Sample](output.png)
 ## Project works
 1.实现了一个简单的数据集生成器，可以通过组合前景、背景以产生训练集
 
@@ -21,12 +22,12 @@ A segmentation project based on aniseg, trained on yolov8-seg
 ## How to generate dataset
 TODO
 
-## 如何检测并分割动漫角色
+## 检测并分割动漫角色
 
 使用命令行检测和分割动漫角色，如下：
 
 ```bash
-python detect.py --source [图片路径] --threshold [分割阈值] --save_path [保存路径] --sam_model [SAM模型] --yolo_model [YOLO模型路径] [--cuda]
+python detect.py --source sample.jpg --threshold 0.3 --save_path ./seg_output --sam_model vit_l --yolo_model ./yolo/ver3.pt --cuda --mask --sam --yolo
 ```
 各参数具体含义如下：
 
@@ -36,15 +37,17 @@ python detect.py --source [图片路径] --threshold [分割阈值] --save_path 
 - sam_model：SAM模型，有 'vit_l', 'vit_h' 和 'vit_b' 三种可选，默认为 'vit_l'
 - yolo_model：YOLO模型路径，默认为'./yolo/ver3.pt'
 - cuda：如果需要使用cuda加速，加上此选项(显存占用非常高，请注意) 若使用CPU计算，一张图大约需要2分钟
+- mask: 是否保存分割遮罩图片，默认为False
+- sam: 是否保存sam分割结果图片，默认为False
+- yolo: 是否保存yolo分割结果图片，默认为False
 
-## TODO:
-1.修复批量处理内存溢出问题
-2.添加各mask导出
+
 ## 模型下载
 
-YOLOv8-seg:https://huggingface.co/AkitoP/Anime-yolov8-seg
-Segment Anything: https://github.com/facebookresearch/segment-anything
+- YOLOv8-seg:https://huggingface.co/AkitoP/Anime-yolov8-seg
+- Segment Anything: https://github.com/facebookresearch/segment-anything
 ## Reference
 - Segment Anything: https://github.com/facebookresearch/segment-anything
 - YOLOv8: https://github.com/ultralytics/ultralytics
 - anime-segmentation: https://github.com/SkyTNT/anime-segmentation
+- semantic segment anything: https://github.com/fudan-zvg/Semantic-Segment-Anything

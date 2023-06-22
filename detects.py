@@ -45,7 +45,7 @@ def yolo_mask_generate(yolo_model, image):
     return masks
 
 # 3. 投票机制，这里由于只有一类，所以直接融合所有YOLO_masks，然后和SAM_masks做投票，如果SAM_masks的重合率大于threshold就保留SAM_masks，否则扔掉，最后融合保留的SAM_masks并返回
-def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8,num = 1,erode_iter=1,erode_kernel_size=2):
+def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8,num = 1,erode_iter=3,erode_kernel_size=3):
     scores = []
     #把yolo_masks给resize到和SAM_masks一样的大小
     zeros = np.zeros_like(SAM_masks[0])
@@ -53,9 +53,11 @@ def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8,num = 1,erode_iter=1,e
     full_mask = np.zeros_like(SAM_masks[0])
     for i, mask in enumerate(SAM_masks):
         full_mask = cv2.bitwise_or(full_mask,mask)
-    #对YOLO_masks先进行一些腐蚀
+    #对YOLO_masks先进行一些腐蚀再膨胀
     kernel = np.ones((erode_kernel_size,erode_kernel_size),np.uint8)
     YOLO_masks = cv2.erode(YOLO_masks,kernel,iterations = erode_iter)
+    if erode_iter > 1:
+        YOLO_masks = cv2.dilate(YOLO_masks,kernel,iterations = erode_iter-1)
     YOLO_masks = cv2.resize(YOLO_masks, (SAM_masks[0].shape[1], SAM_masks[0].shape[0])).astype(np.uint8)
     not_labeled = cv2.bitwise_not(cv2.bitwise_or(zeros, full_mask))
     final_mask = np.zeros_like(SAM_masks[0])
@@ -85,7 +87,7 @@ def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
     image = Image.open(image_path).convert("RGB")
     yolo_masks= yolo_mask_generate(yolo_model,image)
     if yolo_masks is None:
-        return None, None, None
+        return None, None, None, None
     sam_masks = segany_mask_generate(seg_model,image)
     voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
     image = np.array(image.convert("RGBA"))
@@ -95,12 +97,14 @@ def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
     #mask大于0的地方，image的alpha通道为255，否则为0
     image[:,:,3] = voted_mask*255
     image = cv2.cvtColor(image, cv2.COLOR_RGBA2BGRA)
-    return voted_mask, image, sam_masks
+    return voted_mask, image, sam_masks, yolo_masks
 
 #主函数
 def main_func(parse):
     save_path = parse.save_path
-
+    if save_path == "":
+        #如果是空的，就用source文件夹或者source图片所在的文件夹
+        save_path = os.path.dirname(parse.source)
     if parse.sam_model == "vit_l":
         sam = sam_model_registry["vit_l"](checkpoint="./segany/sam_vit_l_0b3195.pth")
         print("Use vit_l")
@@ -114,42 +118,48 @@ def main_func(parse):
         sam = sam.cuda()
 
     sam_model_generator = SamAutomaticMaskGenerator(sam,
-                                                pred_iou_thresh=0.6,
+                                                pred_iou_thresh=0.5,
                                                 stability_score_thresh=0.8,
-                                                crop_n_points_downscale_factor=1,
+                                                crop_n_points_downscale_factor=3,
                                                 crop_n_layers=1)
     yolo_model = YOLO(parse.yolo_model)
     source = parse.source
     show_mask = parse.mask
     show_sam = parse.sam
+    show_yolo = parse.yolo
     #保存图片
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     # 如果source 是文件夹:
     if os.path.isdir(parse.source):
         for image_ in os.listdir(parse.source):
-            output_masks, output_images, sam_masks= pipeline( sam_model_generator, yolo_model, os.path.join(source,image_), parse.threshold)
-            if output_images is None or output_masks is None or sam_masks is None:
+            output_masks, output_images, sam_masks, yolo_masks= pipeline( sam_model_generator, yolo_model, os.path.join(source,image_), parse.threshold)
+            if output_images is None or output_masks is None or sam_masks is None or yolo_masks is None:
                 print("No object detected!")
                 continue
             print("Save {}".format(os.path.join(save_path, image_.split("\\")[-1].split(".")[0]+'.png')))
-            cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'.png'), output_images)
+            cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_seg.png'), output_images)
             if show_mask:
-                cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_mask.png'), output_masks)
+                cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_mask.png'), output_masks*255)
             if show_sam:
                 cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_sam.png'), plot_sam_mask(sam_masks))
+            if show_yolo:
+                cv2.imwrite(os.path.join(save_path, image_.split(".")[0]+'_yolo.png'), cv2.resize(yolo_masks*255, (output_images.shape[1], output_images.shape[0])))
+            
     
     else:
-        output_masks, output_images, sam_masks = pipeline( sam_model_generator, yolo_model, source, parse.threshold)
-        if output_images is None or output_masks is None or sam_masks is None:
+        output_masks, output_images, sam_masks, yolo_masks = pipeline( sam_model_generator, yolo_model, source, parse.threshold)
+        if output_images is None or output_masks is None or sam_masks is None or yolo_masks is None:
             print("No object detected!")
             return
         print("Save {}".format(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'.png')))
-        cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'.png'), output_images)
+        cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'_seg.png'), output_images)
         if show_mask:
             cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'_mask.png'), output_masks*255)
         if  show_sam:
             cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'_sam.png'), plot_sam_mask(sam_masks))
+        if show_yolo:
+            cv2.imwrite(os.path.join(save_path, source.split("\\")[-1].split(".")[0]+'_yolo.png'), cv2.resize(yolo_masks*255, (output_images.shape[1], output_images.shape[0])))
 
 
 
@@ -163,6 +173,7 @@ if __name__ == '__main__':
     parser.add_argument('--cuda', action='store_true', help='use cuda')
     parser.add_argument('--mask', action='store_true', help='show mask')
     parser.add_argument('--sam', action='store_true', help='show sam masks')
+    parser.add_argument('--yolo', action='store_true', help='show yolo masks')
     main_func(parser.parse_args())
 
 

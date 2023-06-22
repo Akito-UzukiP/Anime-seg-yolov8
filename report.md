@@ -40,23 +40,31 @@ Two options:
 anime-segmentation训练集提供了11789张纯动漫角色的透明背景png图片(后称fg)，以及8057张动漫背景图片(后称bg)。我们首先使用直接粘贴的方式，将fg图片一对一地随机粘贴到bg上，生成了11789张简单的训练图片以及其对应的YOLO格式标注。然后，我们在以上的基础上通过复数fg对应一个bg的方式，将多张fg经过缩放、旋转、颜色处理和随即裁剪后粘贴到bg上然后进行随机加噪，生成了15772张训练图片以及其对应的YOLO格式标注。最后，我们使用了COCO2017训练集中的64115张含person类标注的图片，并将其标注格式转换为YOLO格式。我们将以上三个数据集合并，得到了91676张训练图片以及其对应的YOLO格式标注。
 ### 2）YOLOv8-seg模型结构
 ![Alt text](yolov8-seg.png)
+
+### 3）训练
+我们使用YOLOv8m-seg模型在混合训练集上训练了60epoch，即20 V100 hours。
+### 4）分割
+我们首先使用YOLOv8m-seg模型对测试图片进行分割，得到了分割遮罩。然后，对测试图片用Segment Anything模型进行全图semantic segmentation，得到所有的语义分割（由于显存有限，大于1920pix的图片resize到1920pix以下再交给Segment Anything）。最后，将所有与YOLO的分割遮罩的IoU大于threshold(设定为0.3)的语义分割取出，得到阶段性的分割结果。注意到，由于存在许多Segment Anything不会识别的区块，所以我们将所有未被标注的background区域与YOLO的分割遮罩取交集，然后与上一步阶段性的分割结果相或，得到最终的分割结果。为了防止这一步YOLO的分割遮罩过大导致本应被舍弃的边界的background被保留，我们将YOLO的分割这种先腐蚀再进行上一步操作。最后，我们得到了最终的分割结果。
 ## 4. Experiments
 1. 对比了不同的数据集的效果：Aniseg、Aniseg(reinforced)、Aniseg(reinforced)+COCO2017
 ### 4.1 Datasets
-1. 实现了一种混合生成数据集的方式：将Aniseg中的透明背景动漫角色图片经过旋转、平移、缩放、颜色变换等操作之后，叠加到Aniseg的背景上，然后对整体加噪。这样可以有效地增加数据集的多样性，提高模型的泛化能力。
-2. 实现了一种混合训练的方式：将Aniseg和COCO2017的数据集混合，同时训练。由于Aniseg的数据集中只有1w张动漫角色，其泛化性并不高，而且模型似乎很难从Aniseg数据集中学到“人”的概念。因此，我们添加了COCO2017数据集中的“人”类别，这样可以有效地提高模型的泛化能力。
+anime-segmentation训练集提供了11789张纯动漫角色的透明背景png图片(后称fg)，以及8057张动漫背景图片(后称bg)。我们首先使用直接粘贴的方式，将fg图片一对一地随机粘贴到bg上，生成了11789张简单的训练图片以及其对应的YOLO格式标注。然后，我们在以上的基础上通过复数fg对应一个bg的方式，将多张fg经过缩放、旋转、颜色处理和随即裁剪后粘贴到bg上然后进行随机加噪，生成了15772张训练图片以及其对应的YOLO格式标注。最后，我们使用了COCO2017训练集中的64115张含person类标注的图片，并将其标注格式转换为YOLO格式。我们将以上三个数据集合并，得到了91676张训练图片以及其对应的YOLO格式标注。
 ### 4.2 Implementation Details
 How you implement your model. For example, the hyper-parameters you use, the deep learning framework you use, etc.
 参数：
 使用ultralytics提供的coco2017预训练yolov8m-seg模型，batch交给它自动调整（最终调整结果是bs=25），optimizer交给它自动调整(应该是AdamW)，dropout=0,lr=1e-2,momentum=0.937,weight_decay=5e-4，其余参数为默认值。
 框架：
 使用YOLOv8-seg模型，使用ultralytics的deep的代码进行训练。
+
+segment anything模型使用pred_iou_thresh=0.6，stability_score_thresh=0.8，crop_n_points_downscale_factor=1，crop_n_layers=1。
 ### 4.3 Metrics
-Briefly introduce the metrics you would use to assess your model performance in the experiments.
+#### 1. YOLO val
+
+#### 2. 人工判断SAM输出效果(vit-h,vit-b,vit-l)
 
 ### 4.4 Experimental design & results
 1.使用Ani-seg收集的1000张真实动漫图片作为测试集，对模型进行测试，得到如下结果：
-
+![Sample](output.png)
 ## 5. Conclusion
 (What challenge you tackle with what method? How well your method is?)
 
