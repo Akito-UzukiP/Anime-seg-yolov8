@@ -3,9 +3,8 @@
 /yolov8n.pt
 /yolov8n-seg.pt
 /train0
-/segany/sam_vit_h_4b8939.pth
 /detect/*
-/segany
+/segany/*
 /yolo/last.pt
 /yolov8m.pt
 /yolov8m-seg.pt
@@ -15,7 +14,13 @@ person_yolov8n-seg.pt
 /detect
 /videos
 /test
-/yolo
-/outcome_data
+/yolo/*
+/seg_output/*
 yolov8n-seg.pt
 wildcards.txt
+datasets.yaml
+dataset_small.yaml
+ani_seg.yaml
+output.png
+training_command.txt
+/outcome_data

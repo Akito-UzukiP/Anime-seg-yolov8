@@ -2,20 +2,47 @@
 A segmentation project based on aniseg, trained on yolov8-seg
 使用Ani-Seg的训练集，通过组合前景、背景以产生训练集。使用ultralytics的yolov8-seg进行训练，通过结合yolov8-seg和SAM实现更加精准的表现
 ## Project works
-1.读取https://github.com/SkyTNT/anime-segmentation 提供的训练集，并模仿、制造YOLOv8-seg的训练集
+1.实现了一个简单的数据集生成器，可以通过组合前景、背景以产生训练集
 
-2.训练模型
+2.在基于ani-seg生成的训练集和coco2017(仅person)上训练了yolov8m-seg模型
 
 3.实现yolov8 detect+segment anything细化边界的seg任务
 
-4.将上面的过程给封装起来
+### What can this repo do?
+- Generate dataset
+- Use pretrained model to detect and segment anime character
+
+## Requirements
+- Python 3.8 or later with all [requirements.txt]
+- Put the Segment Anything Model into ./segany folder
+- Put the YOLO model into ./yolo folder
+
+## How to generate dataset
+
+
+## 如何检测并分割动漫角色
+
+使用命令行检测和分割动漫角色，如下：
+
+```bash
+python main.py --source [图片路径] --threshold [分割阈值] --save_path [保存路径] --sam_model [SAM模型] --yolo_model [YOLO模型路径] [--cuda]
+```
+各参数具体含义如下：
+
+- source：输入图片的路径，默认为'sample.jpg'
+- threshold：生成分割遮罩的阈值，默认为0.3
+- save_path：保存结果的路径，默认为'./seg_output'
+- sam_model：SAM模型，有 'vit_l', 'vit_h' 和 'vit_b' 三种可选，默认为 'vit_l'
+- yolo_model：YOLO模型路径，默认为'./yolo/ver3.pt'
+- cuda：如果需要使用cuda加速，加上此选项
+
 ## TODO:
-1.增强数据集（AI生成），实现更好的数据集制作（缺少男性动漫角色、CHIBI角色、多角色数据集，没有实现数据增强手段）
 
-2.训练不同大小的模型（n、s、m大小的）
+## 模型下载
 
-3.优化SAM的超参数
-
-## model
-
-YOLOv8m-v0.1:https://huggingface.co/AkitoP/Anime-yolov8-seg
+YOLOv8-seg:https://huggingface.co/AkitoP/Anime-yolov8-seg
+Segment Anything: https://github.com/facebookresearch/segment-anything
+## Reference
+- Segment Anything: https://github.com/facebookresearch/segment-anything
+- YOLOv8: https://github.com/ultralytics/ultralytics
+- anime-segmentation: https://github.com/SkyTNT/anime-segmentation
