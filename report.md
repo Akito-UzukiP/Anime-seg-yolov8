@@ -76,7 +76,9 @@ As can be seen, data augmentation provides a measurable improvement to the model
 
 As can be seen, the Segment Anything model has significantly refined the mask output from the YOLO model, even completing parts that the YOLO model was unable to mask. This indicates that our pipeline design is effective.
 ## 5. Conclusion
-(What challenge you tackle with what method? How well your method is?)
+By generating anime character training dataset and combining it with the COCO2017 human training dataset, we successfully trained a model capable of performing automatic segmentation of anime characters. This model achieves a high level of performance in segmenting anime characters, accurately segmenting them in most situations. However, the model performs poorly in complex scenarios such as close-up characters, complex character movements, and multi-character scenes. We believe this is due to the lack of such situations in our training dataset, which prevents the model from learning how to segment under these conditions. If a more diverse training dataset can be provided, our model could achieve better results.
+
+Through the combination of YOLO's mask annotation and Segment Anything's precise semantic segmentation, we have elevated the task of automatic segmentation of anime characters to a higher, pixel-level standard. However, since the anime training dataset is entirely generated and lacks a wider variety of more generalized training images, the YOLO model cannot produce more accurate masks. Therefore, even when Segment Anything provides sufficiently precise semantic segmentation, our model cannot generate better masks in some complex scenarios and character actions. Hence, we believe that if a more diverse training dataset can be provided, our model could achieve better results.
 
 ## Reference
 [1] Jiang, P., Ergu, D., Liu, F., Cai, Y., & Ma, B. (2022). A Review of Yolo algorithm developments. *Procedia Computer Science*, *199*, 1066-1073.
