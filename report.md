@@ -34,7 +34,10 @@ Two options:
 2. 实现了一种混合训练的方式：将Aniseg和COCO2017的数据集混合，同时训练。由于Aniseg的数据集中只有1w张动漫角色，其泛化性并不高，而且模型似乎很难从Aniseg数据集中学到“人”的概念。因此，我们添加了COCO2017数据集中的“人”类别，这样可以有效地提高模型的泛化能力。
 ### 4.2 Implementation Details
 How you implement your model. For example, the hyper-parameters you use, the deep learning framework you use, etc.
-
+参数：
+使用ultralytics提供的coco2017预训练yolov8m-seg模型，batch交给它自动调整（最终调整结果是bs=25），optimizer交给它自动调整(应该是AdamW)，dropout=0,lr=1e-2,momentum=0.937,weight_decay=5e-4，其余参数为默认值。
+框架：
+使用YOLOv8-seg模型，使用ultralytics的deep的代码进行训练。
 ### 4.3 Metrics
 Briefly introduce the metrics you would use to assess your model performance in the experiments.
 

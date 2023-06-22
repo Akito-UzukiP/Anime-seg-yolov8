@@ -42,7 +42,13 @@ def yolo_mask_generate(yolo_model, image,expand_rate = 1.1):
 def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8):
     scores = []
     #把yolo_masks给resize到和SAM_masks一样的大小
-    YOLO_masks = cv2.resize(YOLO_masks, (SAM_masks[0].shape[1], SAM_masks[0].shape[0]))
+    zeros = np.zeros_like(SAM_masks[0])
+    #zeros与所有的SAM_masks进行或运算，得到一个和SAM_masks一样大小的mask 然后取反，得到所有的未标注区域，然后与YOLO_masks相与，得到所有的未标注区域的YOLO_masks
+    full_mask = np.zeros_like(SAM_masks[0])
+    for i, mask in enumerate(SAM_masks):
+        full_mask = cv2.bitwise_or(full_mask,mask)
+    YOLO_masks = cv2.resize(YOLO_masks, (SAM_masks[0].shape[1], SAM_masks[0].shape[0])).astype(np.uint8)
+    not_labeled = cv2.bitwise_not(cv2.bitwise_or(zeros, full_mask))
     final_mask = np.zeros_like(SAM_masks[0])
     for i, mask in enumerate(SAM_masks):
         score = np.sum(YOLO_masks*mask/mask.sum())
@@ -51,8 +57,8 @@ def vote_mask_generate(SAM_masks,YOLO_masks,threshold=0.8):
             #或运算
             final_mask = cv2.bitwise_or(final_mask,mask)
         #print(score)
-    #将final_mask里的小洞填上
-    final_mask = cv2.morphologyEx(final_mask, cv2.MORPH_CLOSE, np.ones((5,5),np.uint8))
+    not_labeled_yolo = cv2.bitwise_and(not_labeled, YOLO_masks)
+    final_mask = cv2.bitwise_or(final_mask,not_labeled_yolo)
 
     return final_mask
     
@@ -67,7 +73,7 @@ def plot_sam_mask(masks):
     return background
 
 def seg_single(seg_model, yolo_model, image, threshold=0.5):
-
+    # 1. 生成mask
     YOLO_masks, bboxes = yolo_mask_generate(yolo_model, image)
     # 2. 裁剪
     image = image[int(bboxes[1]*image.shape[0]):int(bboxes[3]*image.shape[0]),int(bboxes[0]*image.shape[1]):int(bboxes[2]*image.shape[1])]
