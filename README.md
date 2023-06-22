@@ -20,9 +20,25 @@ A segmentation project based on aniseg, trained on yolov8-seg
 - 将Segment Anything模型放入./segany 文件夹中
 - 将YOLOv8-seg模型放入 ./yolo 文件夹中
 
-## How to generate dataset
-TODO
+## Generate dataset
+In order to generate the training dataset, you should use the provided script with the following command line arguments:
 
+- fg: This argument specifies the path to the folder containing the foreground images. By default, it points to the ./datasets/fg directory.
+
+- bg: This argument specifies the path to the folder containing the background images. By default, it points to the ./datasets/bg directory.
+
+- out: This argument specifies the path to the output directory where the generated images will be saved. By default, it points to the ./datasets/out directory.
+
+- mask: This argument specifies the path to the folder where the masks for the foreground objects will be saved. By default, it points to the ./datasets/masks directory.
+
+- max_item: This argument specifies the maximum number of foreground items that can be placed on one background image. By default, it is set to 8.
+
+- pic_num: This argument specifies the maximum number of pictures to be generated. By default, it is set to 1.
+
+To run the script with these arguments, use the following command:
+```bash
+python generate.py --fg path_to_foreground --bg path_to_background --out path_to_output --mask path_to_mask --max_item number_of_items --pic_num number_of_pictures
+```
 ## 检测并分割动漫角色
 
 使用命令行检测和分割动漫角色，如下：
