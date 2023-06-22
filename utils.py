@@ -21,13 +21,13 @@ def mask2yolo(mask_img, mask_sizes,show = False):
         size.append(len(coords))
     # 保留所有面积大于mask_sizes的轮廓
     min_mask_sizes = min(mask_sizes)
-    print("min_mask_size:"+str(min_mask_sizes))
+    #print("min_mask_size:"+str(min_mask_sizes))
     temp = []
     for i in range(len(poligons)):
         area = cv2.contourArea(np.array(poligons[i]).reshape(-1, 2))
         if area*1.1 > min_mask_sizes:
             temp.append(poligons[i])
-            print(area)
+            #print(area)
     poligons = temp
     # 画出轮廓
     zeros = np.zeros(img.shape, np.uint8)

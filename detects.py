@@ -38,7 +38,7 @@ def segany_mask_generate(seg_model, image):
 def yolo_mask_generate(yolo_model, image):
     # 生成mask
     masks = yolo_model(image)
-    if masks is None:
+    if masks[0].masks is None:
         return None
     masks = masks[0].masks.data.data.cpu().numpy().sum(axis=0)
     #获取数量
@@ -120,10 +120,10 @@ def main_func(parse):
         sam = sam.cuda()
 
     sam_model_generator = SamAutomaticMaskGenerator(sam,
-                                                pred_iou_thresh=0.7,
+                                                pred_iou_thresh=0.6,
                                                 stability_score_thresh=0.8,
-                                                crop_n_points_downscale_factor=3,
-                                                crop_n_layers=2)
+                                                crop_n_points_downscale_factor=1,
+                                                crop_n_layers=1)
     yolo_model = YOLO(parse.yolo_model)
     source = parse.source
     show_mask = parse.mask

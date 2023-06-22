@@ -30,41 +30,51 @@ https://github.com/Bing-su/adetailer
 The model we use is:
 https://github.com/ultralytics/ultralytics
 ## 3. Method
-Two options:
-- If you propose your own methods, describe here.
-- If you are using methods that have been proposed, introduce the method with your own words (Don't copy & paste from the paper). Citation to the original paper is needed. Alternatively, if you make some improvement, highlight it and state them here.
 
-1. 使用了YOLOv8-seg模型结构。（介绍YOLOv8-seg模型结构）
-2. 实现了一种类似sematic segment anything的pipeline:由yolov8模型提供区域的标注，然后从segment anything中获取良好分割的mask，最后根据mask对yolov8的输出进行修正。这样可以有效地提高模型的分割精度。
-### 1）训练集生成
-anime-segmentation训练集提供了11789张纯动漫角色的透明背景png图片(后称fg)，以及8057张动漫背景图片(后称bg)。我们首先使用直接粘贴的方式，将fg图片一对一地随机粘贴到bg上，生成了11789张简单的训练图片以及其对应的YOLO格式标注。然后，我们在以上的基础上通过复数fg对应一个bg的方式，将多张fg经过缩放、旋转、颜色处理和随即裁剪后粘贴到bg上然后进行随机加噪，生成了15772张训练图片以及其对应的YOLO格式标注。最后，我们使用了COCO2017训练集中的64115张含person类标注的图片，并将其标注格式转换为YOLO格式。我们将以上三个数据集合并，得到了91676张训练图片以及其对应的YOLO格式标注。
-### 2）YOLOv8-seg模型结构
-![Alt text](yolov8-seg.png)
+### 1) YOLOv8-seg Model Structure
+The YOLOv8-Seg model is an extension of the YOLOv8 object detection model that also performs semantic segmentation of the input image. The backbone of the YOLOv8-Seg model is a CSPDarknet53 feature extractor, which is followed by a novel C2f module instead of the traditional YOLO neck architecture. The C2f module is followed by two segmentation heads, which learn to predict the semantic segmentation masks for the input image. The model has similar detection heads to YOLOv8, consisting of five detection modules and a prediction layer. The YOLOv8-Seg model has been shown to achieve state-of-the-art results on a variety of object detection and semantic segmentation benchmarks while maintaining high speed and efficiency​1​.
 
-### 3）训练
-我们使用YOLOv8m-seg模型在混合训练集上训练了60epoch，即20 V100 hours。
-### 4）分割
-我们首先使用YOLOv8m-seg模型对测试图片进行分割，得到了分割遮罩。然后，对测试图片用Segment Anything模型进行全图semantic segmentation，得到所有的语义分割（由于显存有限，大于1920pix的图片resize到1920pix以下再交给Segment Anything）。最后，将所有与YOLO的分割遮罩的IoU大于threshold(设定为0.3)的语义分割取出，得到阶段性的分割结果。注意到，由于存在许多Segment Anything不会识别的区块，所以我们将所有未被标注的background区域与YOLO的分割遮罩取交集，然后与上一步阶段性的分割结果相或，得到最终的分割结果。为了防止这一步YOLO的分割遮罩过大导致本应被舍弃的边界的background被保留，我们将YOLO的分割这种先腐蚀再进行上一步操作。最后，我们得到了最终的分割结果。
+### 2) Training
+We trained the YOLOv8m-seg model on the combined training set for 60 epochs, equivalent to 20 V100 hours.
+
+### 3) Segmentation
+We first used the YOLOv8m-seg model to segment the test images, obtaining segmentation masks. Then, we used the Segment Anything model for full-image semantic segmentation on the test images, obtaining all semantic segments (due to memory limitations, images larger than 1920pix were resized to below 1920pix before being given to Segment Anything). Finally, we extracted all semantic segments with an IoU greater than a threshold (set to 0.3) with the YOLO segmentation mask to get an interim segmentation result. Notably, as there are many blocks that Segment Anything does not recognize, we took the intersection of all the unmarked background areas with the YOLO segmentation mask, then combined this with the interim segmentation result from the previous step to get the final segmentation result. To prevent the YOLO segmentation mask from being too large and retaining the background of the boundary that should be discarded, we eroded the YOLO segmentation mask first and then performed the operation from the previous step. Finally, we obtained the final segmentation results​2​.
 ## 4. Experiments
-1. 对比了不同的数据集的效果：Aniseg、Aniseg(reinforced)、Aniseg(reinforced)+COCO2017
 ### 4.1 Datasets
-anime-segmentation训练集提供了11789张纯动漫角色的透明背景png图片(后称fg)，以及8057张动漫背景图片(后称bg)。我们首先使用直接粘贴的方式，将fg图片一对一地随机粘贴到bg上，生成了11789张简单的训练图片以及其对应的YOLO格式标注。然后，我们在以上的基础上通过复数fg对应一个bg的方式，将多张fg经过缩放、旋转、颜色处理和随即裁剪后粘贴到bg上然后进行随机加噪，生成了15772张训练图片以及其对应的YOLO格式标注。最后，我们使用了COCO2017训练集中的64115张含person类标注的图片，并将其标注格式转换为YOLO格式。我们将以上三个数据集合并，得到了91676张训练图片以及其对应的YOLO格式标注。
+The anime-segmentation training set provides 11,789 transparent background png images of pure anime characters (referred to as fg), and 8,057 anime background images (referred to as bg). First, we used a straightforward pasting method to randomly paste the fg images one-to-one onto the bg, generating 11,789 simple training images along with their corresponding YOLO format annotations. Then, on this basis, we used a method of multiple fgs corresponding to a single bg, pasted several fgs after scaling, rotation, color processing, and random cropping onto the bg, and then added random noise, generating 15,772 training images and their corresponding YOLO format annotations. Finally, we used 64,115 images from the COCO2017 training set that contained person class annotations, and converted their annotation format to YOLO format. We merged these three datasets to get 91,676 training images and their corresponding YOLO format annotations.
 ### 4.2 Implementation Details
-How you implement your model. For example, the hyper-parameters you use, the deep learning framework you use, etc.
-参数：
-使用ultralytics提供的coco2017预训练yolov8m-seg模型，batch交给它自动调整（最终调整结果是bs=25），optimizer交给它自动调整(应该是AdamW)，dropout=0,lr=1e-2,momentum=0.937,weight_decay=5e-4，其余参数为默认值。
-框架：
-使用YOLOv8-seg模型，使用ultralytics的deep的代码进行训练。
+The following are the implementation details of the models used:
 
-segment anything模型使用pred_iou_thresh=0.6，stability_score_thresh=0.8，crop_n_points_downscale_factor=1，crop_n_layers=1。
+YOLOv8-seg Model
+The YOLOv8-seg model was trained using the code provided by Ultralytics. The COCO2017 pretrained model of YOLOv8m-seg was used as the base model. The batch size and optimizer (which is likely AdamW) were automatically adjusted by Ultralytics (with the final batch size being 25). The learning rate was set to 1e-2, momentum to 0.937, and weight decay to 5e-4, while dropout was set to 0. Other parameters were left at their default values.
+
+Segment Anything Model
+The Segment Anything model was implemented using ViT_L. The SamAutomaticMaskGenerator was used with the parameters pred_iou_thresh=0.6, stability_score_thresh=0.8, crop_n_points_downscale_factor=1, and crop_n_layers=1. Due to memory constraints, images were resized to be less than or equal to 1920 pixels along their longest dimension before being passed through the Segment Anything model.
+
+Before voting, the mask output from the YOLO model was eroded with a radius of 2 pixels for 3 iterations, and then dilated with a radius of 2 pixels for 2 iterations. Given that the YOLO mask has a fixed longest side of 640 pixels, this erosion and dilation process can be considered equivalent to a 2-3 times operation. During voting, an Intersection over Union (IoU) threshold of 0.3 was used.
+
 ### 4.3 Metrics
 #### 1. YOLO val
-
-#### 2. 人工判断SAM输出效果(vit-h,vit-b,vit-l)
+Metrics used for the evaluation of the YOLO model include Precision (Box(P)), Recall (R), mean Average Precision at 50% Intersection over Union (mAP50), and mAP from 50% to 95% IoU (mAP50-95) for both bounding box and mask predictions. These metrics were used to evaluate several configurations of the model including the base COCO2017 pretrained model, a version trained on Ani-seg's simple dataset for 200 epochs (YOLOv8m-seg@200epochs), a version trained on Ani-seg's enhanced dataset for 100 epochs (YOLOv8n-seg@100epochs), and a version trained on a combination of Ani-seg's simple and enhanced datasets and the COCO2017 person class for 60 epochs (YOLOv8m-seg@60epochs).
+#### 2. Human Evaluation of Output Quality
+The quality of the output was further evaluated by humans. This was done by using the Segment Anything model with VIT_L for the entire pipeline and visually inspecting the resulting outputs. The Segment Anything model was noted to significantly refine the mask output from the YOLO model, even completing parts that the YOLO model was unable to mask. This indicates that our pipeline design is effective and the output quality is satisfactory.
 
 ### 4.4 Experimental design & results
-1.使用Ani-seg收集的1000张真实动漫图片作为测试集，对模型进行测试，得到如下结果：
+#### 1. A set of 944 anime images were used as the test dataset for model evaluation, yielding the following results:
+| Model | Box(P) | R | mAP50 | mAP50-95 | Mask(P) | R | mAP50 | mAP50-95 |
+| ----- | ------ | - | ----- | -------- | ------- | - | ----- | -------- |
+| COCO2017 Pretrained Model | 0.84 | 0.525 | 0.65 | 0.558 | 0.863 | 0.506 | 0.637 | 0.502 |
+| YOLOv8m-seg@200epochs with Ani-seg Simple Dataset | 0.954 | 0.803 | 0.908 | 0.819 | 0.931 | 0.84 | 0.918 | 0.789 |
+| YOLOv8n-seg@100epochs with Ani-seg Enhanced Dataset | 0.902 | 0.901 | 0.951 | 0.798 | 0.909 | 0.891 | 0.944 | 0.718 |
+| YOLOv8m-seg@60epochs with Ani-seg Simple + Enhanced Dataset + COCO2017 Person Class | 0.961 | 0.956 | 0.983 | 0.899 | 0.963 | 0.958 | 0.984 | 0.825 |
+
+As can be seen, data augmentation provides a measurable improvement to the model's segmentation capabilities. Additionally, the incorporation of the concept of a "human" from the COCO2017 dataset also enhances the model's ability to segment, even if the subjects are not anime characters.
+
+#### 2.We used the Segment Anything model with VIT_L for the entire pipeline, resulting in the following outputs:
 ![Sample](output.png)
+![Sample2](output2.png)
+
+As can be seen, the Segment Anything model has significantly refined the mask output from the YOLO model, even completing parts that the YOLO model was unable to mask. This indicates that our pipeline design is effective.
 ## 5. Conclusion
 (What challenge you tackle with what method? How well your method is?)
 

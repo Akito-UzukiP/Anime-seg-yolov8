@@ -31,8 +31,8 @@ def generate(argparse):
             mask.append(masks[i])
         bg_cur = bgs[np.random.randint(0,len(bgs))]
         fg_list = [os.path.join(fg_path,i) for i in fg]
-        bg = bg_path+bg_cur
-        mask_list = [+mask_path+i for i in mask]
+        bg = os.path.join(bg_path,bg_cur)
+        mask_list = [os.path.join(mask_path,i) for i in mask]
         mixed_pic, mixed_mask, mask_sizes = make_pic(fg_list, bg, mask_list)
         filename = ""
         for i in fg:
@@ -41,7 +41,7 @@ def generate(argparse):
         mixed_pic.save(os.path.join(out,filename+"_"+bg_cur[:-4]+str(random_name)+".jpg"))
         #mixed_mask.save(mainpath+"mixed_mask/"+filename+"_"+bg_cur[:-4]+".jpg")
         yolo = mask2yolo(mixed_mask, mask_sizes, show=False)
-        with open(os.path.join(out,filename+"_"+bg_cur[:-4]+str(random_name)+".txt","w")) as f:
+        with open(os.path.join(out,filename+"_"+bg_cur[:-4]+str(random_name)+".txt"),"w") as f:
             f.write(yolo[0])
         
     return
@@ -51,6 +51,8 @@ if __name__ == "__main__":
     parser.add_argument('--fg', type=str, default='./datasets/fg', help='foreground')
     parser.add_argument('--bg', type=str, default='./datasets/bg', help='background')
     parser.add_argument('--out', type=str, default='./datasets/out', help='output')
-    parser.add_argument('--mask', type=str, default='./datasets/mask', help='mask')
+    parser.add_argument('--mask', type=str, default='./datasets/masks', help='mask')
     parser.add_argument('--max_item', type=int, default=8, help='max item')
     parser.add_argument('--pic_num', type=int, default=1, help='max num')
+    args = parser.parse_args()
+    generate(args)
