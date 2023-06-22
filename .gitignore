@@ -24,3 +24,4 @@ ani_seg.yaml
 output.png
 training_command.txt
 /outcome_data
+/yolov8-seg.yaml

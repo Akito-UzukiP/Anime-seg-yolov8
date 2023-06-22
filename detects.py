@@ -38,6 +38,8 @@ def segany_mask_generate(seg_model, image):
 def yolo_mask_generate(yolo_model, image):
     # 生成mask
     masks = yolo_model(image)
+    if masks is None:
+        return None
     masks = masks[0].masks.data.data.cpu().numpy().sum(axis=0)
     #获取数量
     return masks
@@ -87,14 +89,19 @@ def pipeline(seg_model, yolo_model, image_path, threshold=0.3):
         for image_ in os.listdir(image_path):
             image = Image.open(os.path.join(image_path,image_)).convert("RGB")
             yolo_masks= yolo_mask_generate(yolo_model,image)
+            if yolo_masks is None:
+                continue
             sam_masks = segany_mask_generate(seg_model,image)
             voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
             output_masks.append(voted_mask)
             images.append(image)
-            
+        if len(output_masks) == 0:
+            return None
     else:
         image = Image.open(image_path).convert("RGB")
         yolo_masks= yolo_mask_generate(yolo_model,image)
+        if yolo_masks is None:
+            return None
         sam_masks = segany_mask_generate(seg_model,image)
         voted_mask = vote_mask_generate(sam_masks,yolo_masks,threshold=threshold)
         output_masks.append(voted_mask)
@@ -138,6 +145,9 @@ def main_func(parse):
     yolo_model = YOLO(parse.yolo_model)
 
     output_masks, output_images = pipeline( sam_model_generator, yolo_model, parse.source, parse.threshold)
+    if output_masks is None:
+        print("No object detected!")
+        return
     #保存图片
     if not os.path.exists(save_path):
         os.makedirs(save_path)

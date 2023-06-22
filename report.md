@@ -13,10 +13,11 @@ The latest generation of the YOLO (You Only Look Once) series [1], YOLOv8 [2], p
 
 For our project, we utilized the Ani-seg training dataset, which provides anime character foreground and background to generate the training dataset. In addition, we incorporated the 'person' section from the COCO2017 training dataset. Finally, to strive for higher output precision, we employed the Segment-Anything [3] model.
 
+首先，由YOLOv8-seg模型生成分割遮罩，然后使用Segment-Anything模型对分割遮罩进行细化，最后使用细化后的分割遮罩对原图进行分割。
 
 ## 2. Related works
 Our project is primarily based on the YOLOv8 model, which is a state-of-the-art model used for object detection and tracking, instance segmentation, image classification, and pose estimation tasks. The model is designed to be fast, accurate, and easy to use. It can be utilized via Command Line Interface (CLI) or directly in a Python environment. YOLOv8 Detect, Segment and Pose models pretrained on the COCO dataset are available for use​​.
-![Alt text](yolov8.png)
+
 A critical dataset in our project is the anime-segmentation dataset by SkyTNT, which is expressly designed for anime character segmentation. This dataset consists of background images, foreground images with transparent backgrounds (anime characters), and real images with background and foreground. The data collection entailed sourcing the background from character_bg_seg_data, the foreground from the Danbooru website, and the real images and masks from AniSeg and the Danbooru website. To ensure that all foregrounds were indeed anime characters, the dataset underwent an initial cleaning with DeepDanbooru [4], followed by a manual process.
 
 In addition to the anime-segmentation dataset, we also utilized the COCO2017 dataset, specifically leveraging the person segmentation annotations. The COCO2017 dataset is a large-scale object detection, segmentation, and captioning dataset, designed to push forward the advancement of object detection algorithms that can recognize objects in various contexts. Consisting of 118k training images, 5k validation images, and about 41k testing images, this dataset houses approximately 1.5 million object instances across 80 diverse categories. Importantly, this dataset not only provides bounding boxes for object detection but also pixel-wise segmentation masks for semantic understanding, thereby offering a rich understanding of the scene. This data serves as an instrumental tool in enhancing the YOLOv8 model's performance in anime character detection and segmentation tasks.
@@ -35,6 +36,10 @@ Two options:
 
 1. 使用了YOLOv8-seg模型结构。（介绍YOLOv8-seg模型结构）
 2. 实现了一种类似sematic segment anything的pipeline:由yolov8模型提供区域的标注，然后从segment anything中获取良好分割的mask，最后根据mask对yolov8的输出进行修正。这样可以有效地提高模型的分割精度。
+### 1）训练集生成
+anime-segmentation训练集提供了11789张纯动漫角色的透明背景png图片(后称fg)，以及8057张动漫背景图片(后称bg)。我们首先使用直接粘贴的方式，将fg图片一对一地随机粘贴到bg上，生成了11789张简单的训练图片以及其对应的YOLO格式标注。然后，我们在以上的基础上通过复数fg对应一个bg的方式，将多张fg经过缩放、旋转、颜色处理和随即裁剪后粘贴到bg上然后进行随机加噪，生成了15772张训练图片以及其对应的YOLO格式标注。最后，我们使用了COCO2017训练集中的64115张含person类标注的图片，并将其标注格式转换为YOLO格式。我们将以上三个数据集合并，得到了91676张训练图片以及其对应的YOLO格式标注。
+### 2）YOLOv8-seg模型结构
+![Alt text](yolov8-seg.png)
 ## 4. Experiments
 1. 对比了不同的数据集的效果：Aniseg、Aniseg(reinforced)、Aniseg(reinforced)+COCO2017
 ### 4.1 Datasets
