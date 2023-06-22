@@ -48,7 +48,21 @@ Briefly introduce the metrics you would use to assess your model performance in 
 (What challenge you tackle with what method? How well your method is?)
 
 ## Reference
-The reference to the cited paper is needed.
+[1] Jiang, P., Ergu, D., Liu, F., Cai, Y., & Ma, B. (2022). A Review of Yolo algorithm developments. *Procedia Computer Science*, *199*, 1066-1073.
+
+[2] Kim, J. H., Kim, N., & Won, C. S. (2023, June). High-Speed Drone Detection Based On Yolo-V8. In *ICASSP 2023-2023 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)* (pp. 1-2). IEEE.
+
+[3] Kirillov, A., Mintun, E., Ravi, N., Mao, H., Rolland, C., Gustafson, L., ... & Girshick, R. (2023). Segment anything. *arXiv preprint arXiv:2304.02643*.
+
+[4] Taha, M. M., Alsammak, A. K., & Zaky, A. B. (2023). InspectorNet: Transformer network for violence detection in animated cartoon. *Engineering Research Journal-Faculty of Engineering (Shoubra)*, *52*(2), 114-119.
+
+[5] SkyTNT. 2023. Anime-segmentation. https://github.com/SkyTNT/anime-segmentation.
+
+[6] Jerry Li, Tazik Shahjahan. 2020. AniSeg. https://github.com/jerryli27/AniSeg.
+
+[7] Glenn Jocher,ultralytics. 2023. Ultralytics. https://github.com/ultralytics/ultralytics.
+
+[8] Bing-su. 2023. Adetailer. https://github.com/Bing-su/adetailer.
 
 ## Contributions
 - **Name1 (SID1):**
