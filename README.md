@@ -20,25 +20,17 @@ A segmentation project based on aniseg, trained on yolov8-seg
 - 将Segment Anything模型放入./segany 文件夹中
 - 将YOLOv8-seg模型放入 ./yolo 文件夹中
 
-## Generate dataset
-In order to generate the training dataset, you should use the provided script with the following command line arguments:
-
-- fg: This argument specifies the path to the folder containing the foreground images. By default, it points to the ./datasets/fg directory.
-
-- bg: This argument specifies the path to the folder containing the background images. By default, it points to the ./datasets/bg directory.
-
-- out: This argument specifies the path to the output directory where the generated images will be saved. By default, it points to the ./datasets/out directory.
-
-- mask: This argument specifies the path to the folder where the masks for the foreground objects will be saved. By default, it points to the ./datasets/masks directory.
-
-- max_item: This argument specifies the maximum number of foreground items that can be placed on one background image. By default, it is set to 8.
-
-- pic_num: This argument specifies the maximum number of pictures to be generated. By default, it is set to 1.
-
-To run the script with these arguments, use the following command:
+## 数据集生成
+可以使用以下命令创建数据集：
 ```bash
 python generate.py --fg path_to_foreground --bg path_to_background --out path_to_output --mask path_to_mask --max_item number_of_items --pic_num number_of_pictures
 ```
+- fg: 这个参数指定了含有前景图像的文件夹的路径。默认指向的是 ./datasets/fg 目录。
+- bg: 这个参数指定了含有背景图像的文件夹的路径。默认指向的是 ./datasets/bg 目录。
+- out: 这个参数指定了用来保存生成图像的输出目录的路径。默认指向的是 ./datasets/out 目录。
+- mask: 这个参数指定了用来保存前景物体遮罩的文件夹的路径。默认指向的是 ./datasets/masks 目录。
+- max_item: 这个参数指定了一张背景图像上可以放置的前景物体的最大数量。默认设置为 8。
+- pic_num: 这个参数指定了要生成的图片的最大数量。默认设置为 1。
 ## 检测并分割动漫角色
 
 使用命令行检测和分割动漫角色，如下：
