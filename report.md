@@ -5,15 +5,15 @@
 
 ## 1. Introduction
 
-Our topic of interest is Semantic Segmentation, an essential task in computer vision that involves classifying each pixel in an image to a specific class, thus effectively understanding the scene at a pixel level. 
+Our primary focus is Semantic Segmentation, a crucial procedure in the domain of computer vision that entails attributing each pixel in an image to a specific class, thereby comprehending the scene at the most detailed, pixel level.
 
-In the wake of the current trend of generating images with AI guided by Diffusion models, there is a growing need for more and better Anime image datasets for training AI painting models. However, due to the inefficiency of manual annotation and image segmentation, attention has shifted to semantic segmentation technology.
+In light of the prevailing trend of generating images with AI steered by Diffusion models, there has been a rising demand for higher quantity and quality of Anime image datasets for training AI painting models. Nevertheless, due to the limitations and inefficiency associated with manual annotation and image segmentation, the spotlight has turned towards semantic segmentation technologies.
 
-The latest generation of the YOLO (You Only Look Once) series [1], YOLOv8 [2], provides a powerful model for semantic segmentation along with related architecture. This innovation allows for the rapid training of high-quality models, enabling them to be implemented into practical applications quickly. This has opened new avenues in the realm of AI art creation, specifically within Anime image generation, presenting a compelling challenge in this area.
+The latest iteration of the YOLO (You Only Look Once) series [1], namely YOLOv8 [2], introduces a potent model for semantic segmentation, along with the related architecture. This revolutionary development facilitates the swift training of top-tier models, thereby paving the way for their speedy integration into real-world applications. This evolution has unveiled new opportunities in the sphere of AI art creation, specifically in the context of Anime image generation, thus posing an intriguing challenge in this field.
 
-For our project, we utilized the Ani-seg training dataset, which provides anime character foreground and background to generate the training dataset. In addition, we incorporated the 'person' section from the COCO2017 training dataset. Finally, to strive for higher output precision, we employed the Segment-Anything [3] model.
+In our project, we utilized the Ani-seg training dataset, which provides anime character foregrounds and backgrounds for the creation of the training dataset. In addition, we integrated the 'person' section from the COCO2017 training dataset. To strive for higher precision in output, we implemented the Segment-Anything [3] model.
 
-首先，由YOLOv8-seg模型生成分割遮罩，然后使用Segment-Anything模型对分割遮罩进行细化，最后使用细化后的分割遮罩对原图进行分割。
+Firstly, we generate a segmentation mask using the YOLOv8-seg model. Following this, we refine the segmentation mask using the Segment-Anything model. Lastly, we utilize the refined segmentation mask to segment the original image, yielding the final segmentation results optimized with the YOLO model's annotation.
 
 ## 2. Related works
 Our project is primarily based on the YOLOv8 model, which is a state-of-the-art model used for object detection and tracking, instance segmentation, image classification, and pose estimation tasks. The model is designed to be fast, accurate, and easy to use. It can be utilized via Command Line Interface (CLI) or directly in a Python environment. YOLOv8 Detect, Segment and Pose models pretrained on the COCO dataset are available for use​​.
