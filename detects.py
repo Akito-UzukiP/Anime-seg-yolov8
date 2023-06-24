@@ -113,6 +113,8 @@ def main_func(parse):
     elif parse.sam_model == "vit_h":
         sam = sam_model_registry["vit_h"](checkpoint="./segany/sam_vit_h_4b8939.pth")
         print("Use vit_h")
+    elif parse.sam_model == "hq_vit_h":
+        sam = sam_model_registry["vit_h"](checkpoint="./segany/sam_hq_vit_h.pth")
     else:
         sam = sam_model_registry["vit_b"](checkpoint="./segany/sam_vit_b_01ec64.pth")
         print("Use vit_b")
