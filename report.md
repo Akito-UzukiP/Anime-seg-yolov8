@@ -16,7 +16,7 @@ In our project, we utilized the Ani-seg training dataset, which provides anime c
 
 Firstly, we generate a segmentation mask using the YOLOv8-seg model. Following this, we refine the segmentation mask using the Segment-Anything model. Lastly, we utilize the refined segmentation mask to segment the original image, yielding the final segmentation results optimized with the YOLO model's annotation.
 
-![Our work](pipeline.png)
+![Our work](./pics/pipeline.png)
 ## 2. Related works
 Our project is primarily based on the YOLOv8 model, which is a state-of-the-art model used for object detection and tracking, instance segmentation, image classification, and pose estimation tasks. The model is designed to be fast, accurate, and easy to use. It can be utilized via Command Line Interface (CLI) or directly in a Python environment. YOLOv8 Detect, Segment and Pose models pretrained on the COCO dataset are available for use​​.
 
@@ -77,14 +77,14 @@ The above table shows the results of the evaluation of the YOLO model.
 
 As can be seen, data augmentation provides a measurable improvement to the model's segmentation capabilities. Additionally, the incorporation of the concept of a "human" from the COCO2017 dataset also enhances the model's ability to segment, even if the subjects are not anime characters.
 
-![val_results](val_batch1_pred.jpg)
+![val_results](./pics/val_batch1_pred.jpg)
 The above picture shows the results of the prediction of the YOLOv8m-seg@60epochs with Ani-seg Simple + Enhanced Dataset + COCO2017 Person Class model on the test dataset.
 
 
 
 #### 4.2 We used the Segment Anything model with VIT_L for the entire pipeline, resulting in the following outputs:
-![Sample](output.png)
-![Sample2](output2.png)
+![Sample](./pics/output.png)
+![Sample2](./pics/output2.png)
 
 As can be seen, the Segment Anything model has significantly refined the mask output from the YOLO model, even completing parts that the YOLO model was unable to mask. This indicates that our pipeline design is effective.
 ## 5. Conclusion
