@@ -110,6 +110,6 @@ Through the combination of YOLO's mask annotation and Segment Anything's precise
 [8] Bing-su. 2023. Adetailer. https://github.com/Bing-su/adetailer.
 
 ## Contributions
-- **刘宗尧 (12011903):** 
-- **罗世杰 (12010724):** 
-- **郗志豪 (12110607):** 
+- **刘宗尧 (12011903):60%** 
+- **罗世杰 (12010724):25%** 
+- **郗志豪 (12110607):15%** 
