@@ -12,9 +12,13 @@ In light of the prevailing trend of generating images with AI steered by Diffusi
 
 The latest iteration of the YOLO (You Only Look Once) series [1], namely YOLOv8 [2], introduces a potent model for semantic segmentation, along with the related architecture. This revolutionary development facilitates the swift training of top-tier models, thereby paving the way for their speedy integration into real-world applications. This evolution has unveiled new opportunities in the sphere of AI art creation, specifically in the context of Anime image generation, thus posing an intriguing challenge in this field.
 
-In our project, we utilized the Ani-seg training dataset, which provides anime character foregrounds and backgrounds for the creation of the training dataset. In addition, we integrated the 'person' section from the COCO2017 training dataset. To strive for higher precision in output, we implemented the Segment-Anything [3] model.
+In our project, to train a high-quality YOLOv8-seg model, we utilized the Ani-seg training dataset, which provides anime character foregrounds and backgrounds for the creation of the training dataset. In addition, we integrated the 'person' section from the COCO2017 training dataset. To strive for higher precision in output, we implemented the Segment-Anything [3] model.
 
 Firstly, we generate a segmentation mask using the YOLOv8-seg model. Following this, we refine the segmentation mask using the Segment-Anything model. Lastly, we utilize the refined segmentation mask to segment the original image, yielding the final segmentation results optimized with the YOLO model's annotation.
+
+Our github repository is:
+
+https://github.com/Akito-UzukiP/Anime-seg-yolov8
 
 ![Our work](./pics/pipeline.png)
 ## 2. Related works
@@ -27,12 +31,17 @@ A critical dataset in our project is the anime-segmentation dataset by SkyTNT, w
 In addition to the anime-segmentation dataset, we also utilized the COCO2017 dataset, specifically leveraging the person segmentation annotations. The COCO2017 dataset is a large-scale object detection, segmentation, and captioning dataset, designed to push forward the advancement of object detection algorithms that can recognize objects in various contexts. Consisting of 118k training images, 5k validation images, and about 41k testing images, this dataset houses approximately 1.5 million object instances across 80 diverse categories. Importantly, this dataset not only provides bounding boxes for object detection but also pixel-wise segmentation masks for semantic understanding, thereby offering a rich understanding of the scene. This data serves as an instrumental tool in enhancing the YOLOv8 model's performance in anime character detection and segmentation tasks.
 
 We referenced these projects in our process:
+
 https://github.com/SkyTNT/anime-segmentation
+
 https://github.com/jerryli27/AniSeg
+
 https://github.com/Bing-su/adetailer
+
 https://github.com/fudan-zvg/Semantic-Segment-Anything
 
 The model we use is:
+
 https://github.com/ultralytics/ultralytics
 ## 3. Method
 
