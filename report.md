@@ -2,7 +2,7 @@
 
 **Student Name: 刘宗尧 罗世杰 郗志豪**
 
-**Student ID:12011903 12012007 12110607**
+**Student ID:12011903 12010724 12110607**
 
 ## 1. Introduction
 
@@ -111,5 +111,5 @@ Through the combination of YOLO's mask annotation and Segment Anything's precise
 
 ## Contributions
 - **刘宗尧 (12011903):** 
-- **罗世杰 (12012007):** 
+- **罗世杰 (12010724):** 
 - **郗志豪 (12110607):** 
