@@ -1,7 +1,8 @@
-# YOUR TITLE HERE
+# Anime Character Segmentation with YOLOv8 and Segment-Anything
 
-**Student Name:** 
-**Student ID:** 
+**Student Name: 刘宗尧 罗世杰 郗志豪**
+
+**Student ID:12011903 12012007 12110607**
 
 ## 1. Introduction
 
@@ -15,8 +16,11 @@ In our project, we utilized the Ani-seg training dataset, which provides anime c
 
 Firstly, we generate a segmentation mask using the YOLOv8-seg model. Following this, we refine the segmentation mask using the Segment-Anything model. Lastly, we utilize the refined segmentation mask to segment the original image, yielding the final segmentation results optimized with the YOLO model's annotation.
 
+![Our work](pipeline.png)
 ## 2. Related works
 Our project is primarily based on the YOLOv8 model, which is a state-of-the-art model used for object detection and tracking, instance segmentation, image classification, and pose estimation tasks. The model is designed to be fast, accurate, and easy to use. It can be utilized via Command Line Interface (CLI) or directly in a Python environment. YOLOv8 Detect, Segment and Pose models pretrained on the COCO dataset are available for use​​.
+
+Another model we used in our project to improve our segment result is Segment Anything. Segment Anything is a project developed by Meta AI Research, also known as Facebook AI Research (FAIR). The centerpiece of the project is the Segment Anything Model (SAM), which is capable of producing high-quality object masks from input prompts, such as points or boxes. It can be used to generate masks for all objects in an image, making it a versatile tool for a variety of segmentation tasks.
 
 A critical dataset in our project is the anime-segmentation dataset by SkyTNT, which is expressly designed for anime character segmentation. This dataset consists of background images, foreground images with transparent backgrounds (anime characters), and real images with background and foreground. The data collection entailed sourcing the background from character_bg_seg_data, the foreground from the Danbooru website, and the real images and masks from AniSeg and the Danbooru website. To ensure that all foregrounds were indeed anime characters, the dataset underwent an initial cleaning with DeepDanbooru [4], followed by a manual process.
 
@@ -26,18 +30,19 @@ We referenced these projects in our process:
 https://github.com/SkyTNT/anime-segmentation
 https://github.com/jerryli27/AniSeg
 https://github.com/Bing-su/adetailer
+https://github.com/fudan-zvg/Semantic-Segment-Anything
 
 The model we use is:
 https://github.com/ultralytics/ultralytics
 ## 3. Method
 
-### 1) YOLOv8-seg Model Structure
+### 3.1 YOLOv8-seg Model Structure
 The YOLOv8-Seg model is an extension of the YOLOv8 object detection model that also performs semantic segmentation of the input image. The backbone of the YOLOv8-Seg model is a CSPDarknet53 feature extractor, which is followed by a novel C2f module instead of the traditional YOLO neck architecture. The C2f module is followed by two segmentation heads, which learn to predict the semantic segmentation masks for the input image. The model has similar detection heads to YOLOv8, consisting of five detection modules and a prediction layer. The YOLOv8-Seg model has been shown to achieve state-of-the-art results on a variety of object detection and semantic segmentation benchmarks while maintaining high speed and efficiency​1​.
 
-### 2) Training
+### 3.2 Training
 We trained the YOLOv8m-seg model on the combined training set for 60 epochs, equivalent to 20 V100 hours.
 
-### 3) Segmentation
+### 3.3 Segmentation
 We first used the YOLOv8m-seg model to segment the test images, obtaining segmentation masks. Then, we used the Segment Anything model for full-image semantic segmentation on the test images, obtaining all semantic segments (due to memory limitations, images larger than 1920pix were resized to below 1920pix before being given to Segment Anything). Finally, we extracted all semantic segments with an IoU greater than a threshold (set to 0.3) with the YOLO segmentation mask to get an interim segmentation result. Notably, as there are many blocks that Segment Anything does not recognize, we took the intersection of all the unmarked background areas with the YOLO segmentation mask, then combined this with the interim segmentation result from the previous step to get the final segmentation result. To prevent the YOLO segmentation mask from being too large and retaining the background of the boundary that should be discarded, we eroded the YOLO segmentation mask first and then performed the operation from the previous step. Finally, we obtained the final segmentation results​2​.
 ## 4. Experiments
 ### 4.1 Datasets
@@ -54,13 +59,13 @@ The Segment Anything model was implemented using ViT_L. The SamAutomaticMaskGene
 Before voting, the mask output from the YOLO model was eroded with a radius of 2 pixels for 3 iterations, and then dilated with a radius of 2 pixels for 2 iterations. Given that the YOLO mask has a fixed longest side of 640 pixels, this erosion and dilation process can be considered equivalent to a 2-3 times operation. During voting, an Intersection over Union (IoU) threshold of 0.3 was used.
 
 ### 4.3 Metrics
-#### 1. YOLO val
+#### 4.1 YOLO evaluation
 Metrics used for the evaluation of the YOLO model include Precision (Box(P)), Recall (R), mean Average Precision at 50% Intersection over Union (mAP50), and mAP from 50% to 95% IoU (mAP50-95) for both bounding box and mask predictions. These metrics were used to evaluate several configurations of the model including the base COCO2017 pretrained model, a version trained on Ani-seg's simple dataset for 200 epochs (YOLOv8m-seg@200epochs), a version trained on Ani-seg's enhanced dataset for 100 epochs (YOLOv8n-seg@100epochs), and a version trained on a combination of Ani-seg's simple and enhanced datasets and the COCO2017 person class for 60 epochs (YOLOv8m-seg@60epochs).
-#### 2. Human Evaluation of Output Quality
+#### 4.2 Human Evaluation of Output Quality
 The quality of the output was further evaluated by humans. This was done by using the Segment Anything model with VIT_L for the entire pipeline and visually inspecting the resulting outputs. The Segment Anything model was noted to significantly refine the mask output from the YOLO model, even completing parts that the YOLO model was unable to mask. This indicates that our pipeline design is effective and the output quality is satisfactory.
 
 ### 4.4 Experimental design & results
-#### 1. A set of 944 anime images were used as the test dataset for model evaluation, yielding the following results:
+#### 4.1 A set of 944 anime images were used as the test dataset for model evaluation, yielding the following results:
 | Model | Box(P) | R | mAP50 | mAP50-95 | Mask(P) | R | mAP50 | mAP50-95 |
 | ----- | ------ | - | ----- | -------- | ------- | - | ----- | -------- |
 | COCO2017 Pretrained Model | 0.84 | 0.525 | 0.65 | 0.558 | 0.863 | 0.506 | 0.637 | 0.502 |
@@ -77,7 +82,7 @@ The above picture shows the results of the prediction of the YOLOv8m-seg@60epoch
 
 
 
-#### 2.We used the Segment Anything model with VIT_L for the entire pipeline, resulting in the following outputs:
+#### 4.2 We used the Segment Anything model with VIT_L for the entire pipeline, resulting in the following outputs:
 ![Sample](output.png)
 ![Sample2](output2.png)
 
@@ -105,6 +110,6 @@ Through the combination of YOLO's mask annotation and Segment Anything's precise
 [8] Bing-su. 2023. Adetailer. https://github.com/Bing-su/adetailer.
 
 ## Contributions
-- **Name1 (SID1):**
-- **Name2 (SID2):**
-- **Name3 (SID3):**
+- **刘宗尧 (12011903):** 
+- **罗世杰 (12012007):** 
+- **郗志豪 (12110607):** 
