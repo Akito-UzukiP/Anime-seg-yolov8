@@ -1,4 +1,4 @@
-from utils import *
+from src.utils import *
 import os
 import numpy as np
 import PIL.Image as Image

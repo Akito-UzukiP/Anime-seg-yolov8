@@ -32,3 +32,6 @@ output8.png
 output9.png
 /sam-hq
 sam-hq
+detect_with_segany.ipynb
+generate_dataset.ipynb
+/model/*
