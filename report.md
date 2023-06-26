@@ -5,7 +5,7 @@
 **Student ID:12011903 12010724 12110607**
 
 ## 1. Introduction
-
+     
 Our primary focus is Semantic Segmentation, a crucial procedure in the domain of computer vision that entails attributing each pixel in an image to a specific class, thereby comprehending the scene at the most detailed, pixel level.
 
 In light of the prevailing trend of generating images with AI steered by Diffusion models, there has been a rising demand for higher quantity and quality of Anime image datasets for training AI painting models. Nevertheless, due to the limitations and inefficiency associated with manual annotation and image segmentation, the spotlight has turned towards semantic segmentation technologies.
